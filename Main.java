@@ -1017,7 +1017,7 @@ public class Main {
 
                     JComboBox teacherCombo = new JComboBox();
                     teacherCombo.addItem("-");
-                    PreparedStatement stmt9 = conn.prepareStatement("SELECT First_Name, Last_Name FROM Teachers");
+                    PreparedStatement stmt9 = conn.prepareStatement("SELECT * FROM Teachers");
                     ResultSet rs6 = stmt9.executeQuery();
                     while (rs6.next()) {
                         String name = rs6.getString("First_Name");
@@ -1034,7 +1034,7 @@ public class Main {
                             String teacherToLesson = teacherCombo.getSelectedItem().toString();
 
                             try (Connection conn = ConnectionManager.getConnection()) {
-                                PreparedStatement preparedStatementLes = conn.prepareStatement("SELECT Lesson_Name, Course FROM Lessons WHERE Teacher = '" + teacherToLesson + "'");
+                                PreparedStatement preparedStatementLes = conn.prepareStatement("SELECT * FROM Lessons WHERE Teacher = '" + teacherToLesson + "'");
                                 ResultSet rs7 = preparedStatementLes.executeQuery();
                                 lessonCombo.removeAllItems();
                                 while (rs7.next()) {
@@ -1067,7 +1067,7 @@ public class Main {
 
                     JButton addScoreButton = new JButton("Pievienot atzīmi");
                     pane.add(addScoreButton);
-                    addScoreButton.setBounds(780, 450, 200, 25);
+                    addScoreButton.setBounds(810, 450, 200, 25);
 
                     ActionListener newScore = new ActionListener() {
                         @Override
@@ -1085,11 +1085,14 @@ public class Main {
                             int h = ratingTable.getRowCount() + 1;
                             if (atz == 0) {
                                 try (Connection conn = ConnectionManager.getConnection()) {
-                                    PreparedStatement pSTScore = conn.prepareStatement("INSERT INTO Rating (ID_St, ID_Te, ID_Pr, Score) " + "VALUES (?, ?, ?, ?)");
-                                    pSTScore.setInt(1, Integer.parseInt(nameStudent.toString()));
-                                    pSTScore.setInt(2, Integer.parseInt(teacherCombo.getSelectedItem().toString()));
-                                    pSTScore.setInt(3, Integer.parseInt(lessonCombo.getSelectedItem().toString()));
-                                    pSTScore.setString(4, scoreFieldN.getText());
+                                    PreparedStatement ptGetName = conn.prepareStatement("SELECT ID FROM Students WHERE First_Name = " + "'" + name + "'AND " + "Last_Name = " + "'" + surname + "'");
+                                    ResultSet stName = ptGetName.executeQuery();
+
+                                    /*PreparedStatement pSTScore = conn.prepareStatement("INSERT INTO Rating (ID_St, ID_Te, ID_Pr, Score) " + "VALUES (?, ?, ?, ?)");
+                                    pSTScore.setInt(1, ID_St);
+                                    pSTScore.setInt(2, ID_Te);
+                                    pSTScore.setInt(3, ID_Pr);
+                                    pSTScore.setString(4, scoreFieldN.getText());*/
                                 } catch (SQLException e1) {
                                     e1.printStackTrace();
                                 }
@@ -1120,6 +1123,7 @@ public class Main {
                             sexComboBox.setSelectedItem(String.valueOf(table.getModel().getValueAt(row1, sexColumn)));
                             ageField.setText(String.valueOf(table.getModel().getValueAt(row1, ageColumn)));
                             finalPersonCodeField1.setText(String.valueOf(table.getModel().getValueAt(row1, personCodeColumn)));
+                            finalPersonCodeField1.setEditable(false);
                             groupComboBox.setSelectedItem(String.valueOf(table.getModel().getValueAt(row1, studentGroupColumn)));
                             finalPhoneField.setText(String.valueOf(table.getModel().getValueAt(row1, phoneColumn)));
                             emailField.setText(String.valueOf(table.getModel().getValueAt(row1, emailColumn)));
@@ -1161,7 +1165,6 @@ public class Main {
                             lastNameField.setText(null);
                             ageField.setText(null);
                             sexComboBox.setSelectedItem(null);
-                            finalPersonCodeField1.setText(null);
                             groupComboBox.setSelectedItem(null);
                             finalPhoneField.setText(null);
                             emailField.setText(null);
@@ -1187,6 +1190,7 @@ public class Main {
                             sexComboBoxTeacher.setSelectedItem(String.valueOf(tableTeachers.getModel().getValueAt(row1, sexColumn)));
                             ageFieldTeacher.setText(String.valueOf(tableTeachers.getModel().getValueAt(row1, ageColumn)));
                             finalPersonCodeFieldTeacher1.setText(String.valueOf(tableTeachers.getModel().getValueAt(row1, personCodeColumn)));
+                            finalPersonCodeFieldTeacher1.setEditable(false);
                             finalPhoneFieldTeacher.setText(String.valueOf(tableTeachers.getModel().getValueAt(row1, phoneColumn)));
                             emailFieldTeacher.setText(String.valueOf(tableTeachers.getModel().getValueAt(row1, emailColumn)));
                             JOptionPane.showMessageDialog(w, addRecordFormPanelTeacher, "Datu rediģēšana", JOptionPane.INFORMATION_MESSAGE);
