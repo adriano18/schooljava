@@ -15,6 +15,7 @@ import java.net.URL;
 import java.sql.*;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Vector;
 
 public class Main {
@@ -27,6 +28,10 @@ public class Main {
     private static Statement stmt5 = null;
     private static Statement stmt8 = null;
     private ResultSet rs = null;
+
+    private static ArrayList<Integer> students = new ArrayList<Integer>();
+    private static ArrayList<Integer> teachers = new ArrayList<Integer>();
+    private static ArrayList<Integer> lessons = new ArrayList<Integer>();
 
     public static Vector createHeaders(ResultSet rs) throws SQLException {
         ResultSetMetaData metaData = rs.getMetaData();
@@ -606,21 +611,21 @@ public class Main {
 
                     JButton editTeacherButton = new JButton("Rediģēt pasniedzēja datus");
                     pane2.add(editTeacherButton);
-                    editTeacherButton.setBounds(370, 450, 160, 25);
+                    editTeacherButton.setBounds(370, 450, 200, 25);
                     URL editTeacherIconURL = Main.class.getResource("/resources/edit-student.png");
                     ImageIcon editTeacherIcon = new ImageIcon(editTeacherIconURL);
                     editTeacherButton.setIcon(editTeacherIcon);
 
                     JButton deleteTeacherButton = new JButton("Dzēst pasniedzēju");
                     pane2.add(deleteTeacherButton);
-                    deleteTeacherButton.setBounds(540, 450, 130, 25);
+                    deleteTeacherButton.setBounds(580, 450, 140, 25);
                     URL removeTeacherIconURL = Main.class.getResource("/resources/remove.png");
                     ImageIcon removeTeacherIcon = new ImageIcon(removeTeacherIconURL);
                     deleteTeacherButton.setIcon(removeTeacherIcon);
 
                     JButton teacherContactsShowButton = new JButton("Kontakti");
                     pane2.add(teacherContactsShowButton);
-                    teacherContactsShowButton.setBounds(680, 450, 130, 25);
+                    teacherContactsShowButton.setBounds(730, 450, 130, 25);
                     URL showTeacherContactIconURL = Main.class.getResource("/resources/student-contacts.png");
                     ImageIcon showTeacherContactsIcon = new ImageIcon(showTeacherContactIconURL);
                     teacherContactsShowButton.setIcon(showTeacherContactsIcon);
@@ -1019,7 +1024,9 @@ public class Main {
                     teacherCombo.addItem("-");
                     PreparedStatement stmt9 = conn.prepareStatement("SELECT * FROM Teachers");
                     ResultSet rs6 = stmt9.executeQuery();
+                    teachers.clear();
                     while (rs6.next()) {
+                        teachers.add(rs6.getInt("ID"));
                         String name = rs6.getString("First_Name");
                         String lastName = rs6.getString("Last_Name");
                         teacherCombo.addItem(name + " " + lastName);
@@ -1038,6 +1045,7 @@ public class Main {
                                 ResultSet rs7 = preparedStatementLes.executeQuery();
                                 lessonCombo.removeAllItems();
                                 while (rs7.next()) {
+                                    lessons.add(rs7.getInt("ID"));
                                     String nameL = rs7.getString("Lesson_Name");
                                     String courseL = rs7.getString("Course");
                                     lessonCombo.addItem(nameL + " " + "(" + courseL + ")");
@@ -1067,7 +1075,7 @@ public class Main {
 
                     JButton addScoreButton = new JButton("Pievienot atzīmi");
                     pane.add(addScoreButton);
-                    addScoreButton.setBounds(810, 450, 200, 25);
+                    addScoreButton.setBounds(790, 450, 130, 25);
 
                     ActionListener newScore = new ActionListener() {
                         @Override
@@ -1085,14 +1093,15 @@ public class Main {
                             int h = ratingTable.getRowCount() + 1;
                             if (atz == 0) {
                                 try (Connection conn = ConnectionManager.getConnection()) {
-                                    PreparedStatement ptGetName = conn.prepareStatement("SELECT ID FROM Students WHERE First_Name = " + "'" + name + "'AND " + "Last_Name = " + "'" + surname + "'");
-                                    ResultSet stName = ptGetName.executeQuery();
 
-                                    /*PreparedStatement pSTScore = conn.prepareStatement("INSERT INTO Rating (ID_St, ID_Te, ID_Pr, Score) " + "VALUES (?, ?, ?, ?)");
-                                    pSTScore.setInt(1, ID_St);
-                                    pSTScore.setInt(2, ID_Te);
-                                    pSTScore.setInt(3, ID_Pr);
-                                    pSTScore.setString(4, scoreFieldN.getText());*/
+                                    int idStudent = (int) table.getModel().getValueAt(row1, 0);
+                                    PreparedStatement pSTScore = conn.prepareStatement("INSERT INTO Rating (ID_St, ID_Te, ID_Pr, Score) " + "VALUES (?, ?, ?, ?)");
+                                    //pSTScore.setString(1, idStudent);
+                                    //pSTScore.setString(2, teachers.get(3));
+                                    //pSTScore.setString(3, lessons.get(3));
+                                    //pSTScore.setString(4, scoreFieldN.getText());
+                                    System.out.print(idStudent + "|" + teachers.get(3) + "|" + lessons.get(3) + "|" + scoreFieldN.getText());
+
                                 } catch (SQLException e1) {
                                     e1.printStackTrace();
                                 }
@@ -1386,7 +1395,7 @@ public class Main {
                             try {
                                 File file = new File(fc.getSelectedFile() + ".tsv");
                                 FileWriter excel = new FileWriter(file);
-                                for (int i = 0; i < tableModel.getColumnCount(); i++) {
+                                for (int i = 0; i < tableModelRating.getColumnCount(); i++) {
                                     excel.write(tableModel.getColumnName(i) + "\t");
                                 }
                                 excel.write("\n");
@@ -1494,7 +1503,7 @@ public class Main {
                     studentsContactsShowButton.addActionListener(contactsShowing);
                     saveMenuItem.addActionListener(saveDB);
                     newTeacherMenuItem.addActionListener(newRecordTeacher);
-                    //loadDbMenuItem.addActionListener(loadDB);
+                    newUserLessonMenuItem.addActionListener(newLesson);
                     addTeacherButton.addActionListener(newRecordTeacher);
                     editTeacherButton.addActionListener(editSqlDataTeachers);
                     teacherContactsShowButton.addActionListener(contactsShowingTeacher);
@@ -1502,10 +1511,9 @@ public class Main {
                     addLessonButton.addActionListener(newLesson);
                     addScoreButton.addActionListener(newScore);
                     newUserScoreMenuItem.addActionListener(newScore);
+                    editTeacherMenuItem.addActionListener(editSqlDataTeachers);
 
                 } catch (SQLException e) {
-                    System.out.println(e.getMessage());
-                    JOptionPane.showMessageDialog(null, "Datu bāze nestrāda", "Kļūda", JOptionPane.WARNING_MESSAGE);
                     e.printStackTrace();
                     System.exit(0);
                 }
@@ -1513,11 +1521,9 @@ public class Main {
                 aboutProgram.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        String msg = "Lorem Ipsum\n" +
-                                "\"Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit...\"\n" +
-                                "\"There is no one who loves pain itself, who seeks after it and wants to have it, simply because it is pain...\"\n" +
-                                "\n" +
-                                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce hendrerit lacinia metus, id maximus magna euismod ac. Quisque non nisi dictum, consequat nibh sit amet, sollicitudin tortor. Suspendisse mollis, enim eget mollis facilisis, sem nulla tempus lacus, in pretium orci nunc condimentum sapien. Sed vel est neque. Donec enim dolor, dictum non malesuada ut, viverra non eros. Praesent tincidunt ultrices sem, sed tincidunt nisi viverra malesuada. Sed eget lacus in sem dictum sagittis vulputate eget purus. Phasellus lectus augue, tincidunt vel dictum ac, maximus sit amet lacus. Fusce eget erat et sem dictum sagittis et ut quam. Donec sollicitudin, dolor nec porta tempor, velit ligula scelerisque elit, non sodales augue enim nec ante. Maecenas maximus tincidunt leo, quis aliquet purus accumsan laoreet. Nam ullamcorper ultrices leo, vitae placerat nibh faucibus eget. Donec malesuada commodo purus sed accumsan. Donec dignissim elit at fermentum suscipit. Morbi porttitor accumsan lacus vel condimentum.";
+                        String msg =
+                                "Programmatūra “Datu bāze Skola” ir paredzēta informācijas ievadei, glabāšanai un apstrādei par skolēniem, pasniedzējiem, priekšmetiem un atzīmēm.\n" +
+                                "Šī programma var noderēt izglītības iestādēm, lai saglabātu informāciju par mācību rezultātiem un analizētu mācību procesu.\n";
                         JOptionPane optionPane = new NarrowOptionPane();
                         optionPane.setMessage(msg);
                         optionPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
@@ -1528,9 +1534,8 @@ public class Main {
                 programContactAuthor.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        String msg = "Lorem Ipsum\n" +
-                                "\"Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit...\"\n" +
-                                "\"There is no one who loves pain itself, who seeks after it and wants to have it, simply because it is pain...\"\n";
+                        String msg = "Autors: Adrians Petrovs\n" +
+                                "E-pasts: adrianpetrov0@gmail.com\n";
                         JOptionPane optionPane = new NarrowOptionPane();
                         optionPane.setMessage(msg);
                         optionPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
