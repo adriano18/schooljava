@@ -1434,12 +1434,12 @@ public class Main {
                                 File file = new File(fc.getSelectedFile() + ".tsv");
                                 FileWriter excel = new FileWriter(file);
                                 for (int i = 0; i < tableModelRating.getColumnCount(); i++) {
-                                    excel.write(tableModel.getColumnName(i) + "\t");
+                                    excel.write(tableModelRating.getColumnName(i) + "\t");
                                 }
                                 excel.write("\n");
-                                for (int i = 0; i < tableModel.getRowCount(); i++) {
-                                    for (int j = 0; j < tableModel.getColumnCount(); j++) {
-                                        excel.write(tableModel.getValueAt(i, j).toString() + "\t");
+                                for (int i = 0; i < tableModelRating.getRowCount(); i++) {
+                                    for (int j = 0; j < tableModelRating.getColumnCount(); j++) {
+                                        excel.write(tableModelRating.getValueAt(i, j).toString() + "\t");
                                     }
                                     excel.write("\n");
                                 }
