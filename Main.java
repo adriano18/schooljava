@@ -1021,7 +1021,6 @@ public class Main {
                     studentsLabel.setFont(new Font(String.valueOf(fontStL), Font.BOLD, 12));
 
                     JComboBox teacherCombo = new JComboBox();
-                    teacherCombo.addItem("-");
                     PreparedStatement stmt9 = conn.prepareStatement("SELECT * FROM Teachers");
                     ResultSet rs6 = stmt9.executeQuery();
                     teachers.clear();
@@ -1092,15 +1091,21 @@ public class Main {
                             int atz = JOptionPane.showOptionDialog(w, addScore, "Atzīme pievienošana", JOptionPane.PLAIN_MESSAGE, 0, scoreIcon, options, options[1]);
                             int h = ratingTable.getRowCount() + 1;
                             if (atz == 0) {
-                                try (Connection conn = ConnectionManager.getConnection()) {
+                                try {
+                                    Connection conn = ConnectionManager.getConnection();
+                                    PreparedStatement ptGetID = conn.prepareStatement("SELECT ID FROM Students WHERE First_Name = " + "'" + name + "'AND " + "Last_Name = " + "'" + surname + "'");
+                                    ResultSet resGetID = ptGetID.executeQuery();
+                                    int studentID = 0;
+                                    while (resGetID.next()) {
+                                        studentID = resGetID.getInt("ID");
+                                    }
 
-                                    int idStudent = (int) table.getModel().getValueAt(row1, 0);
-                                    PreparedStatement pSTScore = conn.prepareStatement("INSERT INTO Rating (ID_St, ID_Te, ID_Pr, Score) " + "VALUES (?, ?, ?, ?)");
-                                    //pSTScore.setString(1, idStudent);
-                                    //pSTScore.setString(2, teachers.get(3));
-                                    //pSTScore.setString(3, lessons.get(3));
-                                    //pSTScore.setString(4, scoreFieldN.getText());
-                                    System.out.print(idStudent + "|" + teachers.get(3) + "|" + lessons.get(3) + "|" + scoreFieldN.getText());
+                                    CallableStatement cs = conn.prepareCall("INSERT INTO Rating (ID_St, ID_Te, ID_Pr, Score) VALUES (?, ?, ?, ?)");
+                                    cs.setInt(1, studentID);
+                                    cs.setInt(2, 0);
+                                    cs.setInt(3, 0);
+                                    cs.setString(4, scoreFieldN.getText());
+                                    cs.execute();
 
                                 } catch (SQLException e1) {
                                     e1.printStackTrace();
@@ -1111,6 +1116,39 @@ public class Main {
                             }
                         }
                     };
+
+                    JButton deleteScoreButton = new JButton("Dzēst atzīme");
+                    pane4.add(deleteScoreButton);
+                    deleteScoreButton.setBounds(230, 450, 130, 25);
+
+                    deleteScoreButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            int oo = JOptionPane.showConfirmDialog(w, "Vai jūs tiešām vēlaties dzēst šo ierakstu?", "Datu dzēšana", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+
+                            if (oo == JOptionPane.YES_OPTION) {
+                                int selectedRow = ratingTable.getSelectedRow();
+                                int row = ratingTable.convertRowIndexToModel(selectedRow);
+                                Object o = ratingTable.getModel().getValueAt(row, 5);
+
+                                String deleteDataSql = "DELETE FROM Rating " + "WHERE Person_Code = " + "'" + o + "'";
+                                try (Connection conn = ConnectionManager.getConnection()) {
+                                    PreparedStatement preparedStmt = conn.prepareStatement(deleteDataSql);
+                                    preparedStmt.execute();
+                                } catch (SQLException e1) {
+                                    e1.printStackTrace();
+                                }
+                                int[] tableSelectedRow = table.getSelectedRows();
+                                for (int i = 0; i < tableSelectedRow.length; i++) {
+                                    tableSelectedRow[i] = table.convertRowIndexToModel(tableSelectedRow[i]);
+                                    tableModel.removeRow(tableSelectedRow[i] - i);
+                                }
+                                tableModel.fireTableDataChanged();
+                            } else {
+
+                            }
+                        }
+                    });
 
                     /**************************************/
                     JFormattedTextField finalPersonCodeField1 = personCodeField;
